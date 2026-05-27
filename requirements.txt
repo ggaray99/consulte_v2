@@ -1,0 +1,9 @@
+Django==5.1.4
+gunicorn==23.0.0
+whitenoise==6.8.2
+dj-database-url==2.3.0
+psycopg[binary]==3.2.3
+requests==2.32.3
+anthropic==0.40.0
+googlemaps==4.10.0
+resend==2.4.0
