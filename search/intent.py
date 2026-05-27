@@ -94,6 +94,14 @@ def _normalize(s):
     return _strip_accents(s.lower()).strip()
 
 
+def _parse_json_block(text):
+    """Parse a JSON object even if wrapped in markdown fences or prose."""
+    match = re.search(r'\{.*\}', text, re.DOTALL)
+    if not match:
+        raise ValueError('no JSON object found in response')
+    return json.loads(match.group(0))
+
+
 def extract_intent(query):
     """Return a dict with category, zone, urgency, raw_service."""
     query = (query or '').strip()
@@ -139,7 +147,7 @@ def _extract_with_claude(query):
             messages=[{'role': 'user', 'content': query}],
         )
         text = resp.content[0].text.strip()
-        data = json.loads(text)
+        data = _parse_json_block(text)
     except Exception as e:
         logger.warning('Claude intent extraction failed: %s', e)
         return None

@@ -5,8 +5,16 @@ Django settings for consulte (v2 — marketplace).
 import os
 from pathlib import Path
 import dj_database_url
+from dotenv import dotenv_values
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load .env (if present) without overwriting real environ vars and skipping
+# empty values, so the in-code fallbacks in os.environ.get(...) still apply.
+# Real values live in .env (gitignored). See .env.example for the template.
+for _k, _v in dotenv_values(BASE_DIR / '.env').items():
+    if _v and _v.strip() and _k not in os.environ:
+        os.environ[_k] = _v.strip()
 
 
 # --- Security ---
@@ -80,6 +88,11 @@ WSGI_APPLICATION = 'consulte.wsgi.application'
 # --- Database ---
 # DATABASE_URL → Postgres (Railway). Falls back to local SQLite for bootstrap.
 # Will switch to Postgres locally once the first app with geo queries lands.
+
+# dj_database_url tries to parse an empty DATABASE_URL and returns a dummy
+# backend, which then breaks at query time. Treat empty/whitespace as unset.
+if not os.environ.get('DATABASE_URL', '').strip():
+    os.environ.pop('DATABASE_URL', None)
 
 DATABASES = {
     'default': dj_database_url.config(

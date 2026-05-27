@@ -44,8 +44,14 @@ def _query_places(intent):
     # SQLite icontains is accent-sensitive, so filter by zone in Python with
     # the same accent-stripping normalizer the intent extractor uses. Cheap
     # while the result set is small; revisit when we move to Postgres.
+    # If the zone filter eliminates everything, drop it — Google often
+    # returns formatted addresses without the neighborhood name (e.g.
+    # "C1425 Cdad. Autónoma de Buenos Aires" instead of "Palermo"), so a
+    # strict filter would hide otherwise-relevant places.
     zone = intent.get('zone')
     if zone:
-        results = [p for p in results if zone in _normalize(p.address or '')]
+        zoned = [p for p in results if zone in _normalize(p.address or '')]
+        if zoned:
+            results = zoned
 
     return results
