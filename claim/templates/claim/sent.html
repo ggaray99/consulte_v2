@@ -1,0 +1,25 @@
+{% extends 'claim/_base.html' %}
+{% block title %}Mail enviado — consulte.{% endblock %}
+{% block content %}
+    <div class="eyebrow">Reclamo en curso</div>
+    <h1>Revisá tu bandeja</h1>
+    <p class="lead">
+        {% if sent %}
+            Te mandamos un mail a <strong>{{ email }}</strong> con el link para confirmar el reclamo de {{ place.name }}. El link vence en 24 horas.
+        {% else %}
+            No pudimos enviar el mail (servicio no configurado en este entorno).
+            {% if verify_url %}
+                Como estás en DEBUG, te dejamos el link acá abajo:
+            {% endif %}
+        {% endif %}
+    </p>
+
+    {% if verify_url %}
+        <div class="notice warn">
+            <strong>Modo desarrollo:</strong> el envío real de email está desactivado.
+            <code>{{ verify_url }}</code>
+        </div>
+    {% endif %}
+
+    <a href="/places/" class="btn secondary">Volver al listado</a>
+{% endblock %}

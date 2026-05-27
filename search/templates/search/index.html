@@ -1,0 +1,223 @@
+{% load static %}<!doctype html>
+<html lang="es-ar">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>consulte. — turnos en lenguaje natural</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@2.0.4" integrity="sha384-HGfztofotfshcF7+8n44JQL2oJmowVChPTg48S+jvZoztPfvwD79OC/LTtG6dMp+" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --cobalt: #0047AB;
+            --cobalt-dark: #00327D;
+            --cobalt-50: #F2F5FC;
+            --cobalt-100: #DCE5F4;
+            --ink: #0B1C30;
+            --paper: #FFFFFF;
+            --bg-tint: #F8F9FF;
+            --slate-50: #F4F6FA;
+            --slate-100: #E5E9F0;
+            --slate-200: #CBD2DD;
+            --slate-300: #A2AEBE;
+            --slate-400: #6F7E92;
+            --slate-500: #4A5A6E;
+            --slate-700: #1F3147;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+            color: var(--ink);
+            background: var(--paper);
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        header {
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--slate-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .wordmark {
+            font-weight: 600;
+            font-size: 22px;
+            letter-spacing: -0.045em;
+            color: var(--cobalt);
+            text-decoration: none;
+        }
+        .wordmark .dot { color: var(--ink); }
+        header nav a {
+            font-size: 14px;
+            color: var(--slate-500);
+            text-decoration: none;
+            margin-left: 24px;
+        }
+        header nav a:hover { color: var(--ink); }
+
+        .hero {
+            max-width: 880px;
+            margin: 0 auto;
+            padding: 72px 32px 48px;
+            text-align: center;
+        }
+        .hero h1 {
+            font-weight: 600;
+            font-size: 56px;
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+            margin: 0 0 16px;
+        }
+        .hero h1 .accent { color: var(--cobalt); }
+        .hero p.sub {
+            font-size: 18px;
+            color: var(--slate-500);
+            margin: 0 auto 40px;
+            max-width: 560px;
+        }
+
+        form.search {
+            display: flex;
+            gap: 8px;
+            background: var(--paper);
+            border: 1px solid var(--slate-200);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 4px 18px -10px rgba(0,71,171,.18);
+            transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+        }
+        form.search:focus-within {
+            border-color: var(--cobalt);
+            box-shadow: 0 4px 18px -8px rgba(0,71,171,.32);
+        }
+        form.search input {
+            flex: 1;
+            border: 0;
+            outline: 0;
+            padding: 14px 16px;
+            font-family: inherit;
+            font-size: 17px;
+            color: var(--ink);
+            background: transparent;
+        }
+        form.search input::placeholder { color: var(--slate-400); }
+        form.search button {
+            border: 0;
+            background: var(--cobalt);
+            color: #fff;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 15px;
+            padding: 0 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 150ms ease-out;
+        }
+        form.search button:hover { background: var(--cobalt-dark); }
+
+        .examples {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+        .examples .label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--slate-400);
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            margin-right: 8px;
+            align-self: center;
+        }
+        .examples a {
+            font-size: 13px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: var(--slate-50);
+            color: var(--slate-700);
+            text-decoration: none;
+            border: 1px solid var(--slate-100);
+            transition: all 150ms ease-out;
+        }
+        .examples a:hover {
+            background: var(--cobalt-50);
+            border-color: var(--cobalt-100);
+            color: var(--cobalt);
+        }
+
+        #results { max-width: 880px; margin: 0 auto; padding: 0 32px 80px; }
+        .htmx-indicator {
+            display: none;
+            text-align: center;
+            color: var(--slate-400);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            padding: 24px;
+        }
+        .htmx-request .htmx-indicator { display: block; }
+        .htmx-request form.search button { opacity: 0.7; }
+
+        footer {
+            border-top: 1px solid var(--slate-100);
+            padding: 24px 32px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--slate-400);
+            letter-spacing: 0.08em;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a class="wordmark" href="/">consulte<span class="dot">.</span></a>
+        <nav>
+            <a href="/places/">Negocios</a>
+            <a href="/admin/">Admin</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Encontrá tu turno <span class="accent">en una frase.</span></h1>
+        <p class="sub">Escribí lo que necesitás como se lo dirías a un amigo. Nosotros entendemos.</p>
+
+        <form class="search"
+              hx-get="{% url 'search:index' %}"
+              hx-target="#results"
+              hx-swap="innerHTML"
+              hx-push-url="true"
+              hx-indicator=".htmx-indicator">
+            <input
+                type="text"
+                name="q"
+                value="{{ query|default:'' }}"
+                placeholder="turno con dentista en Belgrano este viernes"
+                autocomplete="off"
+                autofocus>
+            <button type="submit">Buscar</button>
+        </form>
+
+        <div class="examples">
+            <span class="label">Probá:</span>
+            <a href="?q=dentista+en+Belgrano">dentista en Belgrano</a>
+            <a href="?q=peluquería+en+Palermo">peluquería en Palermo</a>
+            <a href="?q=veterinario+urgente">veterinario urgente</a>
+            <a href="?q=kinesiólogo+Recoleta">kinesiólogo en Recoleta</a>
+        </div>
+
+        <div class="htmx-indicator">Pensando…</div>
+    </section>
+
+    <div id="results">
+        {% if query %}{% include 'search/_results.html' %}{% endif %}
+    </div>
+
+    <footer>powered by consulte.</footer>
+</body>
+</html>

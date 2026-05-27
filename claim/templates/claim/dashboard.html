@@ -1,0 +1,47 @@
+{% extends 'claim/_base.html' %}
+{% load money %}
+{% block title %}{{ place.name }} — Panel{% endblock %}
+{% block content %}
+    <div class="eyebrow">Panel del owner</div>
+    <h1>{{ place.name }}</h1>
+    <p class="lead">Acá podés cargar los servicios que ofrecés. Los buscadores los van a ver junto al negocio.</p>
+
+    <div class="card">
+        <div class="name">Datos del negocio</div>
+        <div class="meta">
+            {{ place.get_category_display }}
+            {% if place.address %} · {{ place.address }}{% endif %}
+            {% if place.phone %} · {{ place.phone }}{% endif %}
+        </div>
+    </div>
+
+    <h2>Tus servicios</h2>
+
+    {% if services %}
+        <ul class="services">
+            {% for svc in services %}
+                <li>
+                    <div>
+                        <div class="svc-name">
+                            {{ svc.name }}
+                            {% if not svc.is_active %}<span class="svc-meta off">· inactivo</span>{% endif %}
+                        </div>
+                        <div class="svc-meta">
+                            {% if svc.price %}{{ svc.price|ars }} · {% endif %}{{ svc.duration_minutes }} min
+                        </div>
+                    </div>
+                    <div class="svc-actions">
+                        <a href="{% url 'claim:service_edit' place.id svc.pk %}">Editar</a>
+                        <a class="danger" href="{% url 'claim:service_delete' place.id svc.pk %}">Borrar</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <div class="empty">Todavía no cargaste servicios. Empezá con el primero.</div>
+    {% endif %}
+
+    <div style="margin-top: 20px;">
+        <a href="{% url 'claim:service_create' place.id %}" class="btn">Agregar servicio</a>
+    </div>
+{% endblock %}

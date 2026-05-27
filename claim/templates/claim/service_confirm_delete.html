@@ -1,0 +1,15 @@
+{% extends 'claim/_base.html' %}
+{% block title %}Borrar servicio — consulte.{% endblock %}
+{% block content %}
+    <div class="eyebrow">Confirmar borrado</div>
+    <h1>¿Borrar “{{ service.name }}”?</h1>
+    <p class="lead">Esta acción es irreversible. El servicio dejará de mostrarse en {{ place.name }}.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="actions">
+            <button type="submit" class="btn danger">Sí, borrar</button>
+            <a href="{% url 'claim:dashboard' place.id %}" class="btn secondary">Cancelar</a>
+        </div>
+    </form>
+{% endblock %}

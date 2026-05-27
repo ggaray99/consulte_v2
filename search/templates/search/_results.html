@@ -1,0 +1,131 @@
+<style>
+    .intent-card {
+        background: var(--bg-tint, #F8F9FF);
+        border: 1px solid var(--cobalt-100, #DCE5F4);
+        border-left: 3px solid var(--cobalt, #0047AB);
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-bottom: 24px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+    }
+    .intent-card .intent-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--cobalt, #0047AB);
+    }
+    .chip {
+        font-size: 13px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #fff;
+        border: 1px solid var(--cobalt-100, #DCE5F4);
+        color: var(--ink, #0B1C30);
+        font-weight: 500;
+    }
+    .chip.urgent { background: #fff4f0; border-color: #f3c0b3; color: #C8362F; }
+    .chip.engine {
+        background: transparent;
+        border: 0;
+        color: var(--slate-400, #6F7E92);
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        margin-left: auto;
+    }
+    .results-meta {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--slate-400, #6F7E92);
+        margin-bottom: 12px;
+    }
+    .cards { display: grid; gap: 12px; }
+    .card {
+        background: #fff;
+        border: 1px solid var(--slate-100, #E5E9F0);
+        border-radius: 8px;
+        padding: 20px 24px;
+        transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+    }
+    .card:hover {
+        border-color: var(--cobalt-100, #DCE5F4);
+        box-shadow: 0 4px 18px -10px rgba(0,71,171,.25);
+    }
+    .card .cat {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: var(--cobalt, #0047AB);
+        margin-bottom: 6px;
+    }
+    .card .name {
+        font-size: 18px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        margin-bottom: 6px;
+    }
+    .card .addr { color: var(--slate-500, #4A5A6E); font-size: 14px; margin-bottom: 8px; }
+    .card .stats {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12px;
+        color: var(--slate-400, #6F7E92);
+        letter-spacing: 0.04em;
+    }
+    .card .stats .star { color: var(--cobalt, #0047AB); }
+    .empty {
+        text-align: center;
+        padding: 48px 24px;
+        background: var(--slate-50, #F4F6FA);
+        border-radius: 12px;
+        color: var(--slate-500, #4A5A6E);
+    }
+    .empty strong { color: var(--ink, #0B1C30); display: block; margin-bottom: 6px; font-size: 16px; }
+</style>
+
+{% if intent %}
+<div class="intent-card">
+    <span class="intent-label">Entendí</span>
+    {% if intent_category_label %}
+        <span class="chip">{{ intent_category_label }}</span>
+    {% endif %}
+    {% if intent.zone %}
+        <span class="chip">📍 {{ intent.zone }}</span>
+    {% endif %}
+    {% if intent.urgency == 'urgent' %}
+        <span class="chip urgent">⚡ urgente</span>
+    {% endif %}
+    <span class="chip engine">{{ intent.engine }}</span>
+</div>
+{% endif %}
+
+{% if results %}
+    <div class="results-meta">{{ results_count }} resultado{{ results_count|pluralize:"s" }}</div>
+    <div class="cards">
+        {% for place in results %}
+            <div class="card">
+                <div class="cat">{{ place.get_category_display }}</div>
+                <div class="name">{{ place.name }}</div>
+                {% if place.address %}<div class="addr">{{ place.address }}</div>{% endif %}
+                {% if place.rating %}
+                    <div class="stats">
+                        <span class="star">★</span> {{ place.rating }} · {{ place.reviews_count }} review{{ place.reviews_count|pluralize:"s" }}
+                        {% if place.phone %} · {{ place.phone }}{% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="empty">
+        <strong>Sin resultados</strong>
+        Probá con otra zona, otra categoría o palabras diferentes.
+    </div>
+{% endif %}

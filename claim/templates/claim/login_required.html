@@ -1,0 +1,9 @@
+{% extends 'claim/_base.html' %}
+{% block title %}Sesión requerida — consulte.{% endblock %}
+{% block content %}
+    <div class="eyebrow">Panel de owner</div>
+    <h1>Iniciá sesión para ver tu panel</h1>
+    <p class="lead">Solamente el dueño del negocio puede acceder. Pedí un nuevo link de acceso desde el flujo de reclamo.</p>
+
+    <a href="{% url 'claim:start' place_id %}" class="btn">Pedir link de acceso</a>
+{% endblock %}

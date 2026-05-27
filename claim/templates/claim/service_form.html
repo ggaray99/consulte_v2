@@ -1,0 +1,29 @@
+{% extends 'claim/_base.html' %}
+{% block title %}{% if mode == 'edit' %}Editar{% else %}Nuevo{% endif %} servicio — consulte.{% endblock %}
+{% block content %}
+    <div class="eyebrow">{% if mode == 'edit' %}Editar servicio{% else %}Nuevo servicio{% endif %}</div>
+    <h1>{{ place.name }}</h1>
+
+    <form method="post">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="field">
+                {% if field.name == 'is_active' %}
+                    <div class="checkbox-row">
+                        {{ field }}
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    </div>
+                {% else %}
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                {% endif %}
+                {% if field.help_text %}<div class="help">{{ field.help_text }}</div>{% endif %}
+                {% if field.errors %}<div class="errors">{{ field.errors|join:" " }}</div>{% endif %}
+            </div>
+        {% endfor %}
+        <div class="actions">
+            <button type="submit" class="btn">{% if mode == 'edit' %}Guardar cambios{% else %}Crear servicio{% endif %}</button>
+            <a href="{% url 'claim:dashboard' place.id %}" class="btn secondary">Cancelar</a>
+        </div>
+    </form>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'claim/_base.html' %}
+{% block title %}Ya reclamado — consulte.{% endblock %}
+{% block content %}
+    <div class="eyebrow">Reclamo</div>
+    <h1>Este negocio ya tiene dueño</h1>
+    <p class="lead">{{ place.name }} ya fue reclamado. Si sos vos, iniciá sesión desde el link del último mail que recibiste.</p>
+
+    <a href="/places/" class="btn secondary">Volver al listado</a>
+{% endblock %}

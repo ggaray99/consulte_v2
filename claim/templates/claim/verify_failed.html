@@ -1,0 +1,17 @@
+{% extends 'claim/_base.html' %}
+{% block title %}No pudimos verificar — consulte.{% endblock %}
+{% block content %}
+    <div class="eyebrow">Reclamo</div>
+    <h1>El link no es válido</h1>
+    <p class="lead">
+        {% if reason == 'expired' %}
+            Este link venció. Volvé a iniciar el reclamo para recibir uno nuevo.
+        {% elif reason == 'already_claimed' %}
+            {{ place.name }} ya fue reclamado por otra cuenta.
+        {% else %}
+            No pudimos validar este link. Volvé a iniciar el reclamo.
+        {% endif %}
+    </p>
+
+    <a href="/places/" class="btn">Ver negocios</a>
+{% endblock %}

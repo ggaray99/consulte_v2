@@ -1,17 +1,9 @@
 from django.contrib import admin
-from django.http import HttpResponse
-from django.urls import path
-
-
-def placeholder_home(request):
-    return HttpResponse(
-        '<h1 style="font-family:sans-serif">consulte.</h1>'
-        '<p>Marketplace v2 scaffold. Next step: create the first app.</p>',
-        content_type='text/html; charset=utf-8',
-    )
-
+from django.urls import include, path
 
 urlpatterns = [
-    path('', placeholder_home, name='home'),
+    path('', include('search.urls')),
+    path('places/', include('places.urls')),
+    path('', include('claim.urls')),
     path('admin/', admin.site.urls),
 ]

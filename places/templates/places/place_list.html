@@ -1,0 +1,162 @@
+{% load static %}<!doctype html>
+<html lang="es-ar">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Negocios — consulte.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cobalt: #0047AB; --cobalt-dark: #00327D; --cobalt-50: #F2F5FC;
+            --cobalt-100: #DCE5F4; --ink: #0B1C30; --bg-tint: #F8F9FF;
+            --slate-50: #F4F6FA; --slate-100: #E5E9F0; --slate-200: #CBD2DD;
+            --slate-400: #6F7E92; --slate-500: #4A5A6E; --slate-700: #1F3147;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Manrope', system-ui, sans-serif; margin: 0; padding: 0;
+            color: var(--ink); -webkit-font-smoothing: antialiased; line-height: 1.5;
+        }
+        header.app {
+            padding: 20px 32px; border-bottom: 1px solid var(--slate-100);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .wordmark {
+            font-weight: 600; font-size: 22px; letter-spacing: -0.045em;
+            color: var(--cobalt); text-decoration: none;
+        }
+        .wordmark .dot { color: var(--ink); }
+        header.app nav a { font-size: 14px; color: var(--slate-500); text-decoration: none; margin-left: 24px; }
+        header.app nav a:hover { color: var(--ink); }
+
+        main { max-width: 880px; margin: 0 auto; padding: 48px 32px 80px; }
+        h1 { font-weight: 600; font-size: 36px; line-height: 1.1; letter-spacing: -0.02em; margin: 0 0 8px; }
+        .meta-mono {
+            font-family: 'JetBrains Mono', monospace; font-size: 12px;
+            color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.14em;
+            margin-bottom: 28px;
+        }
+
+        .filters { margin-bottom: 28px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .filters a {
+            font-size: 13px; padding: 6px 12px; border-radius: 999px;
+            background: var(--slate-50); color: var(--slate-700);
+            text-decoration: none; border: 1px solid var(--slate-100);
+            transition: all 150ms ease-out;
+        }
+        .filters a:hover { background: var(--cobalt-50); border-color: var(--cobalt-100); color: var(--cobalt); }
+        .filters a.active { background: var(--cobalt); border-color: var(--cobalt); color: #fff; }
+
+        .empty {
+            text-align: center; padding: 48px 24px; background: var(--slate-50);
+            border-radius: 12px; color: var(--slate-500);
+        }
+        .empty code {
+            background: #fff; padding: 0.1rem 0.4rem; border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace; font-size: 13px;
+        }
+
+        ul.places { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+        ul.places li {
+            background: #fff; border: 1px solid var(--slate-100); border-radius: 8px;
+            padding: 20px 24px; display: flex; justify-content: space-between;
+            align-items: flex-start; gap: 20px;
+            transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+        }
+        ul.places li:hover { border-color: var(--cobalt-100); box-shadow: 0 4px 18px -10px rgba(0,71,171,.25); }
+        .place-info { flex: 1; }
+        .cat {
+            font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--cobalt);
+            text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 6px;
+        }
+        .name { font-weight: 600; font-size: 18px; letter-spacing: -0.01em; margin-bottom: 6px; }
+        .addr { color: var(--slate-500); font-size: 14px; margin-bottom: 8px; }
+        .stats {
+            font-family: 'JetBrains Mono', monospace; font-size: 12px;
+            color: var(--slate-400); letter-spacing: 0.04em;
+        }
+        .stats .star { color: var(--cobalt); }
+
+        .claim-action { flex-shrink: 0; }
+        .btn {
+            display: inline-block; font-family: 'Manrope', sans-serif;
+            font-weight: 600; font-size: 13px; padding: 9px 16px;
+            border-radius: 6px; text-decoration: none; cursor: pointer; border: 0;
+            transition: background 150ms ease-out;
+        }
+        .btn.outline {
+            background: #fff; color: var(--cobalt); border: 1px solid var(--cobalt-100);
+        }
+        .btn.outline:hover { background: var(--cobalt-50); border-color: var(--cobalt); }
+        .badge-claimed {
+            font-family: 'JetBrains Mono', monospace; font-size: 11px;
+            color: var(--cobalt); background: var(--cobalt-50); border: 1px solid var(--cobalt-100);
+            padding: 5px 10px; border-radius: 999px;
+            text-transform: uppercase; letter-spacing: 0.12em;
+        }
+
+        footer {
+            border-top: 1px solid var(--slate-100); padding: 24px 32px;
+            text-align: center; font-family: 'JetBrains Mono', monospace;
+            font-size: 12px; color: var(--slate-400); letter-spacing: 0.08em;
+        }
+    </style>
+</head>
+<body>
+    <header class="app">
+        <a class="wordmark" href="/">consulte<span class="dot">.</span></a>
+        <nav>
+            <a href="/">Buscar</a>
+            <a href="/admin/">Admin</a>
+        </nav>
+    </header>
+
+    <main>
+        <h1>Negocios</h1>
+        <div class="meta-mono">{{ total }} activo{{ total|pluralize:"s" }}</div>
+
+        <div class="filters">
+            <a href="{% url 'places:list' %}" class="{% if not category_filter %}active{% endif %}">Todos</a>
+            {% for value, label in categories %}
+                <a href="?category={{ value }}" class="{% if category_filter == value %}active{% endif %}">{{ label }}</a>
+            {% endfor %}
+        </div>
+
+        {% if places %}
+            <ul class="places">
+                {% for place in places %}
+                    <li>
+                        <div class="place-info">
+                            <div class="cat">{{ place.get_category_display }}</div>
+                            <div class="name">{{ place.name }}</div>
+                            {% if place.address %}<div class="addr">{{ place.address }}</div>{% endif %}
+                            {% if place.rating %}
+                                <div class="stats">
+                                    <span class="star">★</span> {{ place.rating }} · {{ place.reviews_count }} review{{ place.reviews_count|pluralize:"s" }}
+                                    {% if place.phone %} · {{ place.phone }}{% endif %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="claim-action">
+                            {% if place.owner_id %}
+                                <span class="badge-claimed">Reclamado</span>
+                            {% else %}
+                                <a href="{% url 'claim:start' place.id %}" class="btn outline">Reclamar</a>
+                            {% endif %}
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="empty">
+                <p>No hay negocios cargados todavía.</p>
+                <p>Corré <code>python manage.py places_ingest --seed-fake</code> para cargar datos de prueba.</p>
+            </div>
+        {% endif %}
+    </main>
+
+    <footer>powered by consulte.</footer>
+</body>
+</html>

@@ -1,0 +1,266 @@
+{% load static %}<!doctype html>
+<html lang="es-ar">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}consulte.{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cobalt: #0047AB;
+            --cobalt-dark: #00327D;
+            --cobalt-50: #F2F5FC;
+            --cobalt-100: #DCE5F4;
+            --ink: #0B1C30;
+            --paper: #FFFFFF;
+            --bg-tint: #F8F9FF;
+            --slate-50: #F4F6FA;
+            --slate-100: #E5E9F0;
+            --slate-200: #CBD2DD;
+            --slate-300: #A2AEBE;
+            --slate-400: #6F7E92;
+            --slate-500: #4A5A6E;
+            --slate-700: #1F3147;
+            --success: #1E9E63;
+            --error: #C8362F;
+        }
+        * { box-sizing: border-box; }
+        html, body { margin: 0; padding: 0; }
+        body {
+            font-family: 'Manrope', system-ui, -apple-system, sans-serif;
+            color: var(--ink);
+            background: var(--paper);
+            -webkit-font-smoothing: antialiased;
+            line-height: 1.5;
+        }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        header.app {
+            padding: 20px 32px;
+            border-bottom: 1px solid var(--slate-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .wordmark {
+            font-weight: 600;
+            font-size: 22px;
+            letter-spacing: -0.045em;
+            color: var(--cobalt);
+            text-decoration: none;
+        }
+        .wordmark .dot { color: var(--ink); }
+        header.app nav a {
+            font-size: 14px;
+            color: var(--slate-500);
+            text-decoration: none;
+            margin-left: 24px;
+        }
+        header.app nav a:hover { color: var(--ink); }
+        header.app .user {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--slate-400);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-left: 24px;
+        }
+
+        main {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 48px 32px 80px;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 36px;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            margin: 0 0 12px;
+        }
+        h2 {
+            font-weight: 500;
+            font-size: 22px;
+            letter-spacing: -0.01em;
+            margin: 32px 0 12px;
+        }
+        .eyebrow {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--cobalt);
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            margin-bottom: 12px;
+        }
+        p.lead { color: var(--slate-500); font-size: 16px; margin: 0 0 24px; }
+
+        .card {
+            background: var(--bg-tint);
+            border: 1px solid var(--slate-100);
+            border-left: 3px solid var(--cobalt);
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+        }
+        .card .name { font-weight: 600; font-size: 17px; margin-bottom: 4px; }
+        .card .meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--slate-500);
+            letter-spacing: 0.04em;
+        }
+
+        form .field { margin-bottom: 18px; }
+        form label {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--slate-500);
+            text-transform: uppercase;
+            letter-spacing: 0.14em;
+            margin-bottom: 6px;
+        }
+        form input[type=text],
+        form input[type=email],
+        form input[type=number],
+        form textarea {
+            width: 100%;
+            font-family: inherit;
+            font-size: 15px;
+            color: var(--ink);
+            background: #fff;
+            border: 1px solid var(--slate-200);
+            border-radius: 6px;
+            padding: 11px 14px;
+            outline: 0;
+            transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+        }
+        form input:focus, form textarea:focus {
+            border-color: var(--cobalt);
+            box-shadow: 0 0 0 3px var(--cobalt-50);
+        }
+        form .help { color: var(--slate-400); font-size: 12px; margin-top: 6px; }
+        form .errors { color: var(--error); font-size: 13px; margin-top: 6px; }
+        form .actions { display: flex; gap: 12px; margin-top: 24px; align-items: center; }
+
+        .checkbox-row { display: flex; align-items: center; gap: 8px; }
+        .checkbox-row input { width: auto; }
+        .checkbox-row label { margin: 0; text-transform: none; letter-spacing: normal; font-family: inherit; font-size: 14px; color: var(--ink); }
+
+        .btn {
+            display: inline-block;
+            border: 0;
+            background: var(--cobalt);
+            color: #fff;
+            font-family: inherit;
+            font-weight: 600;
+            font-size: 14px;
+            padding: 11px 22px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 150ms ease-out;
+        }
+        .btn:hover { background: var(--cobalt-dark); }
+        .btn.secondary {
+            background: #fff;
+            color: var(--slate-700);
+            border: 1px solid var(--slate-200);
+        }
+        .btn.secondary:hover { background: var(--slate-50); border-color: var(--slate-300); }
+        .btn.danger { background: var(--error); }
+        .btn.danger:hover { background: #a52a25; }
+
+        .notice {
+            background: var(--cobalt-50);
+            border: 1px solid var(--cobalt-100);
+            border-radius: 8px;
+            padding: 14px 18px;
+            font-size: 14px;
+            color: var(--cobalt-dark);
+            margin-bottom: 20px;
+        }
+        .notice code {
+            display: block;
+            margin-top: 8px;
+            padding: 8px;
+            background: #fff;
+            border: 1px solid var(--cobalt-100);
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            word-break: break-all;
+            color: var(--ink);
+        }
+        .notice.warn { background: #fff8ef; border-color: #f1d9a8; color: #8b5a13; }
+        .notice.error { background: #fff4f0; border-color: #f3c0b3; color: #8a2520; }
+
+        ul.services { list-style: none; padding: 0; margin: 0; }
+        ul.services li {
+            background: #fff;
+            border: 1px solid var(--slate-100);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: border-color 150ms ease-out;
+        }
+        ul.services li:hover { border-color: var(--cobalt-100); }
+        ul.services .svc-name { font-weight: 600; margin-bottom: 2px; }
+        ul.services .svc-meta {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--slate-500);
+            letter-spacing: 0.04em;
+        }
+        ul.services .svc-meta .off { color: var(--slate-400); }
+        ul.services .svc-actions a {
+            font-size: 13px;
+            color: var(--slate-500);
+            text-decoration: none;
+            margin-left: 14px;
+        }
+        ul.services .svc-actions a:hover { color: var(--cobalt); }
+        ul.services .svc-actions a.danger:hover { color: var(--error); }
+        .empty {
+            text-align: center;
+            padding: 40px 24px;
+            background: var(--slate-50);
+            border-radius: 12px;
+            color: var(--slate-500);
+        }
+
+        footer {
+            border-top: 1px solid var(--slate-100);
+            padding: 24px 32px;
+            text-align: center;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--slate-400);
+            letter-spacing: 0.08em;
+        }
+    </style>
+</head>
+<body>
+    <header class="app">
+        <a class="wordmark" href="/">consulte<span class="dot">.</span></a>
+        <nav>
+            <a href="/places/">Negocios</a>
+            {% if user.is_authenticated %}
+                <span class="user">{{ user.email|default:user.username }}</span>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>powered by consulte.</footer>
+</body>
+</html>

@@ -1,0 +1,30 @@
+{% extends 'claim/_base.html' %}
+{% block title %}Reclamar {{ place.name }} — consulte.{% endblock %}
+{% block content %}
+    <div class="eyebrow">Reclamo de negocio</div>
+    <h1>Reclamá {{ place.name }}</h1>
+    <p class="lead">Te mandamos un mail para confirmar que sos el dueño. Después podés cargar tus servicios y tomar control del perfil.</p>
+
+    <div class="card">
+        <div class="name">{{ place.name }}</div>
+        <div class="meta">
+            {{ place.get_category_display }}
+            {% if place.address %} · {{ place.address }}{% endif %}
+            {% if place.rating %} · ★ {{ place.rating }} ({{ place.reviews_count }}){% endif %}
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="field">
+            <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+            {{ form.email }}
+            {% if form.email.errors %}<div class="errors">{{ form.email.errors|join:" " }}</div>{% endif %}
+            <div class="help">Usá el email que figura asociado al negocio o el que vas a usar para administrarlo.</div>
+        </div>
+        <div class="actions">
+            <button type="submit" class="btn">Enviar link de confirmación</button>
+            <a href="/places/" class="btn secondary">Volver</a>
+        </div>
+    </form>
+{% endblock %}
