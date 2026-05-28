@@ -1,0 +1,241 @@
+{% load static %}{% load money %}<!doctype html>
+<html lang="es-ar">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ place.name }} — consulte.</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cobalt: #0047AB; --cobalt-dark: #00327D; --cobalt-50: #F2F5FC;
+            --cobalt-100: #DCE5F4; --ink: #0B1C30; --bg-tint: #F8F9FF;
+            --slate-50: #F4F6FA; --slate-100: #E5E9F0; --slate-200: #CBD2DD;
+            --slate-400: #6F7E92; --slate-500: #4A5A6E; --slate-700: #1F3147;
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Manrope', system-ui, sans-serif; margin: 0; padding: 0;
+            color: var(--ink); background: #fff; -webkit-font-smoothing: antialiased; line-height: 1.5;
+        }
+        header.app {
+            padding: 20px 32px; border-bottom: 1px solid var(--slate-100);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .wordmark { font-weight: 600; font-size: 22px; letter-spacing: -0.045em; color: var(--cobalt); text-decoration: none; }
+        .wordmark .dot { color: var(--ink); }
+        header.app nav a { font-size: 14px; color: var(--slate-500); text-decoration: none; margin-left: 24px; }
+        header.app nav a:hover { color: var(--ink); }
+
+        main { max-width: 880px; margin: 0 auto; padding: 32px 32px 80px; }
+        .breadcrumb {
+            font-family: 'JetBrains Mono', monospace; font-size: 12px;
+            color: var(--slate-400); letter-spacing: 0.08em;
+            text-transform: uppercase; margin-bottom: 16px;
+        }
+        .breadcrumb a { color: var(--slate-400); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--cobalt); }
+
+        .hero-photo {
+            width: 100%; aspect-ratio: 2.5/1; object-fit: cover;
+            border-radius: 12px; margin-bottom: 24px; background: var(--slate-100);
+        }
+        .no-photo {
+            width: 100%; aspect-ratio: 2.5/1; border-radius: 12px;
+            margin-bottom: 24px; background: var(--cobalt-50);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--cobalt-100); font-size: 72px; font-weight: 700; letter-spacing: -0.04em;
+        }
+
+        .cat-eyebrow {
+            font-family: 'JetBrains Mono', monospace; font-size: 12px;
+            color: var(--cobalt); text-transform: uppercase; letter-spacing: 0.14em;
+            margin-bottom: 8px;
+        }
+        h1 {
+            font-weight: 600; font-size: 36px; line-height: 1.1;
+            letter-spacing: -0.02em; margin: 0 0 12px;
+        }
+        .rating-row {
+            display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+            font-family: 'JetBrains Mono', monospace; font-size: 14px;
+            color: var(--slate-500); margin-bottom: 24px;
+        }
+        .rating-row .star { color: var(--cobalt); font-size: 16px; }
+        .badge-claimed {
+            font-family: 'JetBrains Mono', monospace; font-size: 11px;
+            color: var(--cobalt); background: var(--cobalt-50);
+            border: 1px solid var(--cobalt-100);
+            padding: 4px 10px; border-radius: 999px;
+            text-transform: uppercase; letter-spacing: 0.12em;
+        }
+
+        .cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 32px; }
+        .btn {
+            display: inline-block; font-family: inherit; font-weight: 600;
+            font-size: 14px; padding: 12px 22px; border-radius: 6px;
+            text-decoration: none; cursor: pointer; border: 0;
+            transition: background 150ms ease-out;
+        }
+        .btn.primary { background: var(--cobalt); color: #fff; }
+        .btn.primary:hover { background: var(--cobalt-dark); }
+        .btn.outline { background: #fff; color: var(--slate-700); border: 1px solid var(--slate-200); }
+        .btn.outline:hover { background: var(--slate-50); border-color: var(--slate-300); }
+
+        h2 {
+            font-weight: 500; font-size: 20px; letter-spacing: -0.01em;
+            margin: 32px 0 12px; padding-top: 24px; border-top: 1px solid var(--slate-100);
+        }
+        h2:first-of-type { padding-top: 0; border-top: 0; }
+
+        dl.info { display: grid; grid-template-columns: 140px 1fr; gap: 10px 16px; margin: 0; }
+        dl.info dt {
+            font-family: 'JetBrains Mono', monospace; font-size: 12px;
+            color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.1em;
+            padding-top: 2px;
+        }
+        dl.info dd { margin: 0; font-size: 15px; color: var(--ink); }
+        dl.info dd a { color: var(--cobalt); text-decoration: none; }
+        dl.info dd a:hover { text-decoration: underline; }
+
+        .hours-list { list-style: none; padding: 0; margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--ink); }
+        .hours-list li { padding: 4px 0; border-bottom: 1px dashed var(--slate-100); }
+        .hours-list li:last-child { border-bottom: 0; }
+
+        .map-image { width: 100%; border-radius: 8px; display: block; background: var(--slate-100); }
+        .map-link {
+            display: inline-block; margin-top: 8px;
+            font-family: 'JetBrains Mono', monospace; font-size: 12px;
+            color: var(--cobalt); text-decoration: none;
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+        .map-link:hover { color: var(--cobalt-dark); }
+
+        ul.services { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+        ul.services li {
+            background: var(--bg-tint); border: 1px solid var(--cobalt-100);
+            border-left: 3px solid var(--cobalt); border-radius: 8px;
+            padding: 14px 18px;
+        }
+        ul.services .svc-name { font-weight: 600; font-size: 15px; }
+        ul.services .svc-desc { color: var(--slate-500); font-size: 14px; margin-top: 4px; }
+        ul.services .svc-meta {
+            font-family: 'JetBrains Mono', monospace; font-size: 12px;
+            color: var(--cobalt); letter-spacing: 0.04em; margin-top: 6px;
+        }
+
+        .photo-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-top: 16px; }
+        .photo-strip img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; }
+
+        footer {
+            border-top: 1px solid var(--slate-100); padding: 24px 32px;
+            text-align: center; font-family: 'JetBrains Mono', monospace;
+            font-size: 12px; color: var(--slate-400); letter-spacing: 0.08em;
+        }
+
+        @media (max-width: 640px) {
+            h1 { font-size: 26px; }
+            dl.info { grid-template-columns: 1fr; gap: 4px 0; }
+            dl.info dt { padding-top: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="app">
+        <a class="wordmark" href="/">consulte<span class="dot">.</span></a>
+        <nav>
+            <a href="/">Buscar</a>
+            <a href="/places/">Negocios</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="breadcrumb">
+            <a href="/places/">Negocios</a> · {{ place.get_category_display }}
+        </div>
+
+        {% if has_photos %}
+            <img class="hero-photo" src="{% url 'places:photo' place.id 0 %}?w=1200" alt="{{ place.name }}">
+        {% else %}
+            <div class="no-photo">{{ place.name|first|upper }}</div>
+        {% endif %}
+
+        <div class="cat-eyebrow">{{ place.get_category_display }}</div>
+        <h1>{{ place.name }}</h1>
+
+        <div class="rating-row">
+            {% if place.rating %}
+                <span><span class="star">★</span> {{ place.rating }} · {{ place.reviews_count }} review{{ place.reviews_count|pluralize:"s" }}</span>
+            {% endif %}
+            {% if place.owner_id %}
+                <span class="badge-claimed">Reclamado</span>
+            {% endif %}
+        </div>
+
+        <div class="cta-row">
+            {% if place.phone %}
+                <a class="btn primary" href="tel:{{ place.phone }}">Llamar</a>
+            {% endif %}
+            {% if not place.owner_id %}
+                <a class="btn outline" href="{% url 'claim:start' place.id %}">¿Sos el dueño? Reclamar</a>
+            {% endif %}
+            {% if place.website %}
+                <a class="btn outline" href="{{ place.website }}" target="_blank" rel="noopener noreferrer">Sitio web</a>
+            {% endif %}
+        </div>
+
+        <h2>Información</h2>
+        <dl class="info">
+            {% if place.address %}
+                <dt>Dirección</dt><dd>{{ place.address }}</dd>
+            {% endif %}
+            {% if place.phone %}
+                <dt>Teléfono</dt><dd><a href="tel:{{ place.phone }}">{{ place.phone }}</a></dd>
+            {% endif %}
+            {% if place.website %}
+                <dt>Web</dt><dd><a href="{{ place.website }}" target="_blank" rel="noopener noreferrer">{{ place.website }}</a></dd>
+            {% endif %}
+        </dl>
+
+        {% if weekday_hours %}
+            <h2>Horarios</h2>
+            <ul class="hours-list">
+                {% for line in weekday_hours %}<li>{{ line }}</li>{% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if has_coords %}
+            <h2>Ubicación</h2>
+            <img class="map-image" src="{% url 'places:map' place.id %}" alt="Mapa de {{ place.name }}">
+            <a class="map-link" href="https://www.google.com/maps/search/?api=1&query={{ place.lat }},{{ place.lng }}&query_place_id={{ place.google_place_id }}" target="_blank" rel="noopener noreferrer">Ver en Google Maps →</a>
+        {% endif %}
+
+        {% if services %}
+            <h2>Servicios</h2>
+            <ul class="services">
+                {% for svc in services %}
+                    <li>
+                        <div class="svc-name">{{ svc.name }}</div>
+                        {% if svc.description %}<div class="svc-desc">{{ svc.description }}</div>{% endif %}
+                        <div class="svc-meta">
+                            {% if svc.price %}{{ svc.price|ars }} · {% endif %}{{ svc.duration_minutes }} min
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% if photo_count > 1 %}
+            <h2>Más fotos</h2>
+            <div class="photo-strip">
+                {% for i in place.photos %}{% if forloop.counter0 > 0 and forloop.counter0 < 7 %}
+                    <img src="{% url 'places:photo' place.id forloop.counter0 %}?w=400" alt="">
+                {% endif %}{% endfor %}
+            </div>
+        {% endif %}
+    </main>
+
+    <footer>powered by consulte.</footer>
+</body>
+</html>

@@ -45,19 +45,24 @@
         letter-spacing: 0.14em;
         color: var(--slate-400, #6F7E92);
         margin-bottom: 12px;
+        display: flex; justify-content: space-between; gap: 12px;
     }
+    .results-meta .geo-tag { color: var(--cobalt, #0047AB); }
+    .stats .distance { color: var(--cobalt, #0047AB); }
     .cards { display: grid; gap: 12px; }
     .card {
         background: #fff;
         border: 1px solid var(--slate-100, #E5E9F0);
         border-radius: 8px;
         padding: 20px 24px;
+        text-decoration: none; color: inherit; display: block;
         transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
     }
     .card:hover {
         border-color: var(--cobalt-100, #DCE5F4);
         box-shadow: 0 4px 18px -10px rgba(0,71,171,.25);
     }
+    .card:hover .name { color: var(--cobalt, #0047AB); }
     .card .cat {
         font-family: 'JetBrains Mono', monospace;
         font-size: 11px;
@@ -107,20 +112,24 @@
 {% endif %}
 
 {% if results %}
-    <div class="results-meta">{{ results_count }} resultado{{ results_count|pluralize:"s" }}</div>
+    <div class="results-meta">
+        <span>{{ results_count }} resultado{{ results_count|pluralize:"s" }}</span>
+        {% if sorted_by_distance %}<span class="geo-tag">📍 Ordenado por cercanía</span>{% endif %}
+    </div>
     <div class="cards">
         {% for place in results %}
-            <div class="card">
+            <a class="card" href="{% url 'places:detail' place.id %}">
                 <div class="cat">{{ place.get_category_display }}</div>
                 <div class="name">{{ place.name }}</div>
                 {% if place.address %}<div class="addr">{{ place.address }}</div>{% endif %}
                 {% if place.rating %}
                     <div class="stats">
                         <span class="star">★</span> {{ place.rating }} · {{ place.reviews_count }} review{{ place.reviews_count|pluralize:"s" }}
+                        {% if place.distance_km %} · <span class="distance">{{ place.distance_km|floatformat:1 }} km</span>{% endif %}
                         {% if place.phone %} · {{ place.phone }}{% endif %}
                     </div>
                 {% endif %}
-            </div>
+            </a>
         {% endfor %}
     </div>
 {% else %}

@@ -39,6 +39,8 @@ DETAIL_FIELDS = [
     'user_ratings_total',
     'opening_hours',
     'business_status',
+    'photo',  # singular in the fields filter, but the response key is "photos"
+    'website',
 ]
 
 
@@ -262,6 +264,12 @@ class Command(BaseCommand):
                 'periods': opening.get('periods', []),
             } if opening else {}
 
+            photo_refs = [
+                p['photo_reference']
+                for p in (details.get('photos') or [])
+                if p.get('photo_reference')
+            ][:10]  # cap at 10, more than enough for our UI
+
             defaults = {
                 'name': (details.get('name') or '')[:255],
                 'address': (details.get('formatted_address') or '')[:500],
@@ -272,6 +280,8 @@ class Command(BaseCommand):
                 'rating': details.get('rating'),
                 'reviews_count': details.get('user_ratings_total') or 0,
                 'hours': hours_json,
+                'photos': photo_refs,
+                'website': (details.get('website') or '')[:500],
                 'source': Place.Source.GOOGLE,
                 'is_active': True,
                 'last_ingested_at': now,

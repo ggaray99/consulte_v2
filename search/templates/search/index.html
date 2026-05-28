@@ -163,6 +163,33 @@
         .htmx-request .htmx-indicator { display: block; }
         .htmx-request form.search button { opacity: 0.7; }
 
+        .geo-row {
+            display: flex; justify-content: center; align-items: center;
+            margin-top: 14px; min-height: 32px;
+        }
+        .geo-btn {
+            font-family: 'JetBrains Mono', monospace; font-size: 12px;
+            letter-spacing: 0.08em;
+            padding: 6px 14px; border-radius: 999px;
+            background: #fff; color: var(--slate-500);
+            border: 1px solid var(--slate-200);
+            cursor: pointer; transition: all 150ms ease-out;
+            display: inline-flex; align-items: center; gap: 6px;
+        }
+        .geo-btn:hover { border-color: var(--cobalt-100); color: var(--cobalt); }
+        .geo-btn.active {
+            background: var(--cobalt-50);
+            border-color: var(--cobalt-100);
+            color: var(--cobalt);
+        }
+        .geo-btn .geo-clear {
+            background: none; border: 0; color: inherit; cursor: pointer;
+            font-family: inherit; font-size: 11px; opacity: 0.7;
+            margin-left: 2px; padding: 0 2px;
+        }
+        .geo-btn .geo-clear:hover { opacity: 1; }
+        .geo-btn.error { color: var(--slate-400); }
+
         footer {
             border-top: 1px solid var(--slate-100);
             padding: 24px 32px;
@@ -203,12 +230,18 @@
             <button type="submit">Buscar</button>
         </form>
 
+        <div class="geo-row">
+            <button type="button" id="geo-btn" class="geo-btn">
+                <span id="geo-label">📍 Usar mi ubicación</span>
+            </button>
+        </div>
+
         <div class="examples">
             <span class="label">Probá:</span>
-            <a href="?q=dentista+en+Belgrano">dentista en Belgrano</a>
+            <a href="?q=dentista+en+Palermo">dentista en Palermo</a>
             <a href="?q=peluquería+en+Palermo">peluquería en Palermo</a>
             <a href="?q=veterinario+urgente">veterinario urgente</a>
-            <a href="?q=kinesiólogo+Recoleta">kinesiólogo en Recoleta</a>
+            <a href="?q=kinesiólogo+cerca">kinesiólogo cerca</a>
         </div>
 
         <div class="htmx-indicator">Pensando…</div>
@@ -219,5 +252,103 @@
     </div>
 
     <footer>powered by consulte.</footer>
+
+    <script>
+    (function () {
+        var KEY = 'consulte:geo';
+        var btn = document.getElementById('geo-btn');
+        var label = document.getElementById('geo-label');
+        var form = document.querySelector('form.search');
+        var input = form.querySelector('input[name=q]');
+
+        function getCoords() {
+            try {
+                var raw = sessionStorage.getItem(KEY);
+                if (!raw) return null;
+                var p = JSON.parse(raw);
+                if (typeof p.lat === 'number' && typeof p.lng === 'number') return p;
+            } catch (e) {}
+            return null;
+        }
+
+        function setActive(coords) {
+            sessionStorage.setItem(KEY, JSON.stringify(coords));
+            btn.classList.add('active');
+            btn.classList.remove('error');
+            label.textContent = '📍 Cerca tuyo';
+            if (!btn.querySelector('.geo-clear')) {
+                var x = document.createElement('button');
+                x.className = 'geo-clear';
+                x.type = 'button';
+                x.textContent = '✕';
+                x.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    clearGeo();
+                });
+                btn.appendChild(x);
+            }
+        }
+
+        function clearGeo() {
+            sessionStorage.removeItem(KEY);
+            btn.classList.remove('active', 'error');
+            label.textContent = '📍 Usar mi ubicación';
+            var x = btn.querySelector('.geo-clear');
+            if (x) x.remove();
+        }
+
+        function requestGeo() {
+            if (!navigator.geolocation) {
+                label.textContent = '📍 No disponible en este navegador';
+                btn.classList.add('error');
+                return;
+            }
+            label.textContent = '📍 Pidiendo permiso…';
+            navigator.geolocation.getCurrentPosition(
+                function (pos) { setActive({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
+                function () {
+                    label.textContent = '📍 Permiso denegado';
+                    btn.classList.add('error');
+                    setTimeout(function () {
+                        if (!getCoords()) {
+                            label.textContent = '📍 Usar mi ubicación';
+                            btn.classList.remove('error');
+                        }
+                    }, 3000);
+                },
+                { timeout: 10000, maximumAge: 600000 }
+            );
+        }
+
+        btn.addEventListener('click', function (e) {
+            if (e.target.classList && e.target.classList.contains('geo-clear')) return;
+            if (getCoords()) return;
+            requestGeo();
+        });
+
+        if (getCoords()) setActive(getCoords());
+
+        document.body.addEventListener('htmx:configRequest', function (evt) {
+            var c = getCoords();
+            if (c) {
+                evt.detail.parameters.lat = c.lat;
+                evt.detail.parameters.lng = c.lng;
+            }
+        });
+
+        document.querySelectorAll('.examples a').forEach(function (a) {
+            a.addEventListener('click', function (e) {
+                e.preventDefault();
+                var u = new URL(a.href, location.origin);
+                var q = u.searchParams.get('q');
+                if (q) {
+                    input.value = q;
+                    if (window.htmx) window.htmx.trigger(form, 'submit');
+                    else form.requestSubmit();
+                }
+            });
+        });
+    })();
+    </script>
 </body>
 </html>

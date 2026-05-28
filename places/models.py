@@ -37,6 +37,10 @@ class Place(models.Model):
     rating = models.FloatField('Rating', null=True, blank=True)
     reviews_count = models.PositiveIntegerField('Cantidad de reviews', default=0)
     hours = models.JSONField('Horarios', default=dict, blank=True)
+    photos = models.JSONField(
+        'Fotos (Google photo_references)', default=list, blank=True
+    )
+    website = models.URLField('Web', max_length=500, blank=True)
 
     source = models.CharField(
         'Origen',
