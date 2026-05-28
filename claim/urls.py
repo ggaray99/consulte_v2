@@ -5,6 +5,7 @@ from . import views
 app_name = 'claim'
 
 urlpatterns = [
+    path('para-negocios/', views.claim_offer, name='offer'),
     path('reclamar/<int:place_id>/', views.start_claim, name='start'),
     path('reclamar/verificar/<str:token>/', views.verify_claim, name='verify'),
 

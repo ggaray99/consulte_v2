@@ -16,6 +16,19 @@ from .tokens import make_claim_token, read_claim_token
 AUTH_BACKEND = 'django.contrib.auth.backends.ModelBackend'
 
 
+def claim_offer(request):
+    total_places = Place.objects.filter(is_active=True).count()
+    claimed_places = Place.objects.filter(is_active=True, owner__isnull=False).count()
+    total_services = ServiceOffering.objects.filter(is_active=True).count()
+
+    return render(request, 'claim/offer.html', {
+        'total_places': total_places,
+        'claimed_places': claimed_places,
+        'unclaimed_places': max(total_places - claimed_places, 0),
+        'total_services': total_services,
+    })
+
+
 def start_claim(request, place_id):
     place = get_object_or_404(Place, pk=place_id, is_active=True)
 

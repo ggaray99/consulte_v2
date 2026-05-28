@@ -29,13 +29,17 @@ Dada una consulta del usuario en español, devolvé EXCLUSIVAMENTE un objeto JSO
   "category": "dentist" | "hair_care" | "beauty_salon" | "doctor" | "physiotherapist" | "veterinary_care" | "spa" | "other",
   "zone": "<barrio o zona mencionada en la consulta, en minúsculas y sin tildes, o null si no hay>",
   "urgency": "urgent" | "normal",
-  "raw_service": "<descripción corta del servicio en las palabras del usuario, máx 60 chars>"
+  "raw_service": "<descripción corta del servicio en las palabras del usuario, máx 60 chars>",
+  "ranking": "recommended" | "nearby" | "best" | "popular",
+  "budget": "any" | "cheap" | "premium"
 }
 
 Reglas:
 - "category" debe ser exactamente uno de los valores listados.
 - "urgent" sólo si el usuario menciona urgencia explícita (hoy, ya, urgente, ahora, lo antes posible).
 - "zone" en minúsculas y sin acentos (ej: "palermo", "belgrano", "villa crespo").
+- "ranking" debe ser "nearby" si el usuario prioriza cercanía ("cerca", "por mi zona", "al lado"), "best" si prioriza calidad ("mejor", "muy bueno", "top"), "popular" si prioriza reputación masiva ("muchas reviews", "popular"), y "recommended" en cualquier otro caso.
+- "budget" debe ser "cheap" si busca precio bajo ("barato", "económico"), "premium" si busca gama alta ("premium", "mejor lugar", "alta gama"), y "any" si no hay señal clara de precio.
 - Si no entendés algo, usá "other" para category y null para zone.
 """
 
@@ -71,6 +75,31 @@ KEYWORD_CATEGORY_MAP = [
 URGENT_KEYWORDS = {
     'urgente', 'urgencia', 'ya', 'hoy', 'ahora', 'apurado', 'rapido',
     'lo antes posible', 'cuanto antes',
+}
+
+RANKING_KEYWORDS = {
+    'nearby': {
+        'cerca', 'cercano', 'cercana', 'por mi zona', 'al lado', 'a unas cuadras',
+        'cerca mio', 'cerca mio', 'cerca de casa',
+    },
+    'best': {
+        'mejor', 'mejores', 'muy bueno', 'muy buena', 'top', 'excelente',
+        'recomendado', 'recomendados',
+    },
+    'popular': {
+        'popular', 'muchas reviews', 'muchas resenas', 'muchas opiniones',
+        'con muchas reviews', 'famoso',
+    },
+}
+
+BUDGET_KEYWORDS = {
+    'cheap': {
+        'barato', 'barata', 'baratos', 'baratas', 'economico', 'economica',
+        'accesible', 'precio bajo', 'mas barato', 'mas barata',
+    },
+    'premium': {
+        'premium', 'alta gama', 'caro', 'cara', 'mejor lugar', 'de lujo',
+    },
 }
 
 # CABA neighborhoods we care to detect in the fallback path.
@@ -122,6 +151,8 @@ def _empty_intent():
         'zone': None,
         'urgency': 'normal',
         'raw_service': '',
+        'ranking': 'recommended',
+        'budget': 'any',
         'engine': 'empty',
     }
 
@@ -164,12 +195,16 @@ def _extract_with_claude(query):
 
     urgency = data.get('urgency') if data.get('urgency') in ('urgent', 'normal') else 'normal'
     raw_service = (data.get('raw_service') or query)[:60]
+    ranking = data.get('ranking') if data.get('ranking') in ('recommended', 'nearby', 'best', 'popular') else 'recommended'
+    budget = data.get('budget') if data.get('budget') in ('any', 'cheap', 'premium') else 'any'
 
     return {
         'category': category,
         'zone': zone,
         'urgency': urgency,
         'raw_service': raw_service,
+        'ranking': ranking,
+        'budget': budget,
         'engine': 'claude',
     }
 
@@ -190,11 +225,24 @@ def _extract_fallback(query):
             break
 
     urgency = 'urgent' if any(kw in norm for kw in URGENT_KEYWORDS) else 'normal'
+    ranking = 'recommended'
+    for value in ('nearby', 'best', 'popular'):
+        if any(kw in norm for kw in RANKING_KEYWORDS[value]):
+            ranking = value
+            break
+
+    budget = 'any'
+    for value in ('cheap', 'premium'):
+        if any(kw in norm for kw in BUDGET_KEYWORDS[value]):
+            budget = value
+            break
 
     return {
         'category': category,
         'zone': zone,
         'urgency': urgency,
         'raw_service': query[:60],
+        'ranking': ranking,
+        'budget': budget,
         'engine': 'fallback',
     }

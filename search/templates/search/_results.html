@@ -78,6 +78,12 @@
         margin-bottom: 6px;
     }
     .card .addr { color: var(--slate-500, #4A5A6E); font-size: 14px; margin-bottom: 8px; }
+    .card .match {
+        font-size: 13px;
+        color: var(--cobalt, #0047AB);
+        margin: -2px 0 8px;
+        font-weight: 600;
+    }
     .card .stats {
         font-family: 'JetBrains Mono', monospace;
         font-size: 12px;
@@ -107,6 +113,11 @@
     {% if intent.urgency == 'urgent' %}
         <span class="chip urgent">⚡ urgente</span>
     {% endif %}
+    {% if intent.budget == 'cheap' %}
+        <span class="chip">$ barato</span>
+    {% elif intent.budget == 'premium' %}
+        <span class="chip">premium</span>
+    {% endif %}
     <span class="chip engine">{{ intent.engine }}</span>
 </div>
 {% endif %}
@@ -122,6 +133,7 @@
                 <div class="cat">{{ place.get_category_display }}</div>
                 <div class="name">{{ place.name }}</div>
                 {% if place.address %}<div class="addr">{{ place.address }}</div>{% endif %}
+                {% if place.match_reason %}<div class="match">Servicio relevante: {{ place.match_reason }}</div>{% endif %}
                 {% if place.rating %}
                     <div class="stats">
                         <span class="star">★</span> {{ place.rating }} · {{ place.reviews_count }} review{{ place.reviews_count|pluralize:"s" }}
