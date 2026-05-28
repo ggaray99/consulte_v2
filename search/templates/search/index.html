@@ -80,7 +80,7 @@
             max-width: 560px;
         }
 
-        form.search {
+        .search-bar {
             display: flex;
             gap: 8px;
             background: var(--paper);
@@ -90,11 +90,11 @@
             box-shadow: 0 4px 18px -10px rgba(0,71,171,.18);
             transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
         }
-        form.search:focus-within {
+        .search-bar:focus-within {
             border-color: var(--cobalt);
             box-shadow: 0 4px 18px -8px rgba(0,71,171,.32);
         }
-        form.search input {
+        .search-bar input {
             flex: 1;
             border: 0;
             outline: 0;
@@ -104,8 +104,8 @@
             color: var(--ink);
             background: transparent;
         }
-        form.search input::placeholder { color: var(--slate-400); }
-        form.search button {
+        .search-bar input::placeholder { color: var(--slate-400); }
+        .search-bar button {
             border: 0;
             background: var(--cobalt);
             color: #fff;
@@ -117,7 +117,7 @@
             cursor: pointer;
             transition: background 150ms ease-out;
         }
-        form.search button:hover { background: var(--cobalt-dark); }
+        .search-bar button:hover { background: var(--cobalt-dark); }
 
         .examples {
             margin-top: 20px;
@@ -161,7 +161,8 @@
             padding: 24px;
         }
         .htmx-request .htmx-indicator { display: block; }
-        .htmx-request form.search button { opacity: 0.7; }
+        .htmx-request .search-bar button { opacity: 0.7; }
+        .htmx-request .toolbar select { opacity: 0.7; }
 
         .geo-row {
             display: flex; justify-content: center; align-items: center;
@@ -190,6 +191,53 @@
         .geo-btn .geo-clear:hover { opacity: 1; }
         .geo-btn.error { color: var(--slate-400); }
 
+        .toolbar {
+            max-width: 880px; margin: 32px auto 0; padding: 0 32px;
+            border-top: 1px solid var(--slate-100); padding-top: 24px;
+        }
+        .toolbar-header {
+            display: flex; justify-content: space-between; align-items: baseline;
+            margin-bottom: 12px;
+        }
+        .toolbar-header .label {
+            font-family: 'JetBrains Mono', monospace; font-size: 12px;
+            color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.14em;
+        }
+        .toolbar-header .clear {
+            font-family: 'JetBrains Mono', monospace; font-size: 11px;
+            color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.1em;
+            background: none; border: 0; cursor: pointer; padding: 0;
+        }
+        .toolbar-header .clear:hover { color: var(--cobalt); }
+        .toolbar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        .toolbar-grid .ctrl { display: flex; flex-direction: column; gap: 4px; }
+        .toolbar-grid .ctrl-label {
+            font-family: 'JetBrains Mono', monospace; font-size: 11px;
+            color: var(--slate-400); text-transform: uppercase; letter-spacing: 0.12em;
+        }
+        .toolbar-grid select {
+            font-family: inherit; font-size: 14px;
+            padding: 9px 12px; border-radius: 6px;
+            border: 1px solid var(--slate-200); background: #fff; color: var(--ink);
+            outline: 0; cursor: pointer; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%236F7E92' d='M5 6L0 0h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+            transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+        }
+        .toolbar-grid select:focus, .toolbar-grid select:hover {
+            border-color: var(--cobalt);
+        }
+        .toolbar-grid select.has-value {
+            background-color: var(--cobalt-50);
+            border-color: var(--cobalt-100);
+        }
+
         footer {
             border-top: 1px solid var(--slate-100);
             padding: 24px 32px;
@@ -210,45 +258,93 @@
         </nav>
     </header>
 
-    <section class="hero">
-        <h1>Encontrá tu turno <span class="accent">en una frase.</span></h1>
-        <p class="sub">Escribí lo que necesitás como se lo dirías a un amigo. Nosotros entendemos.</p>
+    <form id="main-form"
+          hx-get="{% url 'search:index' %}"
+          hx-target="#results"
+          hx-swap="innerHTML"
+          hx-push-url="true"
+          hx-indicator=".htmx-indicator">
+        <section class="hero">
+            <h1>Encontrá tu turno <span class="accent">en una frase.</span></h1>
+            <p class="sub">Escribí lo que necesitás como se lo dirías a un amigo. Nosotros entendemos.</p>
 
-        <form class="search"
-              hx-get="{% url 'search:index' %}"
-              hx-target="#results"
-              hx-swap="innerHTML"
-              hx-push-url="true"
-              hx-indicator=".htmx-indicator">
-            <input
-                type="text"
-                name="q"
-                value="{{ query|default:'' }}"
-                placeholder="turno con dentista en Belgrano este viernes"
-                autocomplete="off"
-                autofocus>
-            <button type="submit">Buscar</button>
-        </form>
+            <div class="search-bar">
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ query|default:'' }}"
+                    placeholder="turno con dentista en Belgrano este viernes"
+                    autocomplete="off"
+                    autofocus>
+                <button type="submit">Buscar</button>
+            </div>
 
-        <div class="geo-row">
-            <button type="button" id="geo-btn" class="geo-btn">
-                <span id="geo-label">📍 Usar mi ubicación</span>
-            </button>
-        </div>
+            <div class="geo-row">
+                <button type="button" id="geo-btn" class="geo-btn">
+                    <span id="geo-label">📍 Usar mi ubicación</span>
+                </button>
+            </div>
 
-        <div class="examples">
-            <span class="label">Probá:</span>
-            <a href="?q=dentista+en+Palermo">dentista en Palermo</a>
-            <a href="?q=peluquería+en+Palermo">peluquería en Palermo</a>
-            <a href="?q=veterinario+urgente">veterinario urgente</a>
-            <a href="?q=kinesiólogo+cerca">kinesiólogo cerca</a>
-        </div>
+            <div class="examples">
+                <span class="label">Probá:</span>
+                <a href="?q=dentista+en+Palermo">dentista en Palermo</a>
+                <a href="?q=peluquería+en+Palermo">peluquería en Palermo</a>
+                <a href="?q=veterinario+urgente">veterinario urgente</a>
+                <a href="?q=kinesiólogo+cerca">kinesiólogo cerca</a>
+            </div>
 
-        <div class="htmx-indicator">Pensando…</div>
-    </section>
+            <div class="htmx-indicator">Pensando…</div>
+        </section>
+
+        <section class="toolbar">
+            <div class="toolbar-header">
+                <span class="label">Filtros y orden</span>
+                <button type="button" class="clear" id="clear-all" style="display:none">Limpiar todo</button>
+            </div>
+            <div class="toolbar-grid">
+                <div class="ctrl">
+                    <span class="ctrl-label">Categoría</span>
+                    <select name="category" class="filter-ctrl{% if filters.category %} has-value{% endif %}">
+                        <option value="">Cualquiera</option>
+                        {% for value, label in categories %}
+                            <option value="{{ value }}" {% if filters.category == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="ctrl">
+                    <span class="ctrl-label">Reputación mínima</span>
+                    <select name="min_rating" class="filter-ctrl{% if filters.min_rating %} has-value{% endif %}">
+                        <option value="">Cualquiera</option>
+                        <option value="3.5" {% if filters.min_rating == 3.5 %}selected{% endif %}>3,5+</option>
+                        <option value="4.0" {% if filters.min_rating == 4.0 %}selected{% endif %}>4,0+</option>
+                        <option value="4.5" {% if filters.min_rating == 4.5 %}selected{% endif %}>4,5+</option>
+                        <option value="4.8" {% if filters.min_rating == 4.8 %}selected{% endif %}>4,8+</option>
+                    </select>
+                </div>
+                <div class="ctrl">
+                    <span class="ctrl-label">Reseñas mínimas</span>
+                    <select name="min_reviews" class="filter-ctrl{% if filters.min_reviews %} has-value{% endif %}">
+                        <option value="">Cualquiera</option>
+                        <option value="10" {% if filters.min_reviews == 10 %}selected{% endif %}>10+</option>
+                        <option value="50" {% if filters.min_reviews == 50 %}selected{% endif %}>50+</option>
+                        <option value="100" {% if filters.min_reviews == 100 %}selected{% endif %}>100+</option>
+                        <option value="500" {% if filters.min_reviews == 500 %}selected{% endif %}>500+</option>
+                    </select>
+                </div>
+                <div class="ctrl">
+                    <span class="ctrl-label">Ordenar por</span>
+                    <select name="sort" class="filter-ctrl{% if sort != 'recommended' %} has-value{% endif %}">
+                        {% for value, label in sort_choices %}
+                            <option value="{{ value }}" {% if sort == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+        </section>
+    </form>
 
     <div id="results">
-        {% if query %}{% include 'search/_results.html' %}{% endif %}
+        {% if results or has_active_filters or query %}{% include 'search/_results.html' %}{% endif %}
     </div>
 
     <footer>powered by consulte.</footer>
@@ -258,7 +354,7 @@
         var KEY = 'consulte:geo';
         var btn = document.getElementById('geo-btn');
         var label = document.getElementById('geo-label');
-        var form = document.querySelector('form.search');
+        var form = document.getElementById('main-form');
         var input = form.querySelector('input[name=q]');
 
         function getCoords() {
@@ -348,6 +444,57 @@
                 }
             });
         });
+
+        var clearBtn = document.getElementById('clear-all');
+
+        function updateClearVisibility() {
+            if (!clearBtn) return;
+            var anyActive = input.value.trim() !== '';
+            form.querySelectorAll('select.filter-ctrl').forEach(function (s) {
+                if (s.name === 'sort') {
+                    if (s.value && s.value !== 'recommended') anyActive = true;
+                } else if (s.value) {
+                    anyActive = true;
+                }
+            });
+            clearBtn.style.display = anyActive ? '' : 'none';
+        }
+
+        function refreshSelectStates() {
+            form.querySelectorAll('select.filter-ctrl').forEach(function (s) {
+                var active = (s.name === 'sort')
+                    ? (s.value && s.value !== 'recommended')
+                    : !!s.value;
+                s.classList.toggle('has-value', !!active);
+            });
+        }
+
+        form.querySelectorAll('select.filter-ctrl').forEach(function (sel) {
+            sel.addEventListener('change', function () {
+                refreshSelectStates();
+                updateClearVisibility();
+                if (window.htmx) window.htmx.trigger(form, 'submit');
+                else form.requestSubmit();
+            });
+        });
+
+        input.addEventListener('input', updateClearVisibility);
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function () {
+                input.value = '';
+                form.querySelectorAll('select.filter-ctrl').forEach(function (s) {
+                    s.value = (s.name === 'sort') ? 'recommended' : '';
+                });
+                refreshSelectStates();
+                updateClearVisibility();
+                if (window.htmx) window.htmx.trigger(form, 'submit');
+                else form.requestSubmit();
+            });
+        }
+
+        refreshSelectStates();
+        updateClearVisibility();
     })();
     </script>
 </body>
