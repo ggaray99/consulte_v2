@@ -162,55 +162,6 @@
             color: var(--cobalt);
         }
 
-        .owner-strip {
-            max-width: 880px;
-            margin: 18px auto 0;
-            padding: 0 32px;
-        }
-        .owner-card {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            gap: 16px;
-            align-items: center;
-            padding: 18px 20px;
-            border-radius: 16px;
-            border: 1px solid var(--cobalt-100);
-            background: linear-gradient(135deg, var(--cobalt-50), #fff);
-        }
-        .owner-card .kicker {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            color: var(--cobalt);
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            margin-bottom: 4px;
-        }
-        .owner-card .title {
-            font-size: 21px;
-            font-weight: 600;
-            letter-spacing: -0.02em;
-            margin-bottom: 4px;
-        }
-        .owner-card .text {
-            color: var(--slate-500);
-            font-size: 14px;
-            max-width: 620px;
-        }
-        .owner-card .cta {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            background: var(--cobalt);
-            color: #fff;
-            padding: 12px 18px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 600;
-            white-space: nowrap;
-        }
-        .owner-card .cta:hover { background: var(--cobalt-dark); }
-
         #results { max-width: 880px; margin: 0 auto; padding: 0 32px 80px; }
         .htmx-indicator {
             display: none;
@@ -310,13 +261,6 @@
 
         @media (max-width: 720px) {
             header nav a:not(.nav-cta) { display: none; }
-            .owner-card {
-                grid-template-columns: 1fr;
-                text-align: left;
-            }
-            .owner-card .cta {
-                width: 100%;
-            }
         }
     </style>
 </head>
@@ -366,17 +310,6 @@
             </div>
 
             <div class="htmx-indicator">Pensando…</div>
-        </section>
-
-        <section class="owner-strip">
-            <div class="owner-card">
-                <div>
-                    <div class="kicker">Para dueÃ±os y profesionales</div>
-                    <div class="title">ReclamÃ¡ tu perfil y activÃ¡ la oferta de consulte. para negocios</div>
-                    <div class="text">MÃ¡s visibilidad en bÃºsquedas naturales hoy. Herramientas operativas con IA maÃ±ana. MirÃ¡ la propuesta completa y encontrÃ¡ tu negocio para reclamarlo.</div>
-                </div>
-                <a class="cta" href="{% url 'claim:offer' %}">Ver propuesta para negocios</a>
-            </div>
         </section>
 
         <section class="toolbar">
