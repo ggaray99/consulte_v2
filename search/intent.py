@@ -6,18 +6,25 @@ Fallback (no API key or API failure): keyword matching against a small
 dictionary so the dev server is usable without secrets.
 """
 
+import hashlib
 import json
 import logging
 import re
 import unicodedata
 
 from django.conf import settings
+from django.core.cache import cache
 
 from places.models import Place
 
 logger = logging.getLogger(__name__)
 
 CLAUDE_MODEL = 'claude-haiku-4-5-20251001'
+
+# Las queries reales se repiten mucho ("dentista en belgrano"); cachear el
+# intent extraído por Claude ahorra latencia y costo de API. Solo se cachean
+# resultados de Claude — el fallback es gratis y no vale la pena persistirlo.
+INTENT_CACHE_TTL = 60 * 60 * 24  # 24 horas
 
 VALID_CATEGORIES = {c.value for c in Place.Category}
 
@@ -131,18 +138,33 @@ def _parse_json_block(text):
     return json.loads(match.group(0))
 
 
-def extract_intent(query):
-    """Return a dict with category, zone, urgency, raw_service."""
+def extract_intent(query, *, use_llm=True):
+    """Return a dict with category, zone, urgency, raw_service.
+
+    `use_llm=False` saltea Claude (throttle de costo) y usa el fallback,
+    pero sigue aprovechando intents ya cacheados.
+    """
     query = (query or '').strip()
     if not query:
         return _empty_intent()
 
-    if settings.ANTHROPIC_API_KEY:
+    cache_key = _intent_cache_key(query)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return cached
+
+    if use_llm and settings.ANTHROPIC_API_KEY:
         intent = _extract_with_claude(query)
         if intent is not None:
+            cache.set(cache_key, intent, INTENT_CACHE_TTL)
             return intent
 
     return _extract_fallback(query)
+
+
+def _intent_cache_key(query):
+    digest = hashlib.md5(_normalize(query).encode('utf-8')).hexdigest()
+    return f'search:intent:{digest}'
 
 
 def _empty_intent():

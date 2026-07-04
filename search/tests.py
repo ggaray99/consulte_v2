@@ -1,8 +1,12 @@
+from unittest import mock
+
+from django.core.cache import cache
 from django.test import Client, TestCase, override_settings
 
 from claim.models import ServiceOffering
 from places.models import Place
 from search.intent import extract_intent
+from search.models import SearchQuery
 
 
 @override_settings(ANTHROPIC_API_KEY='')
@@ -15,10 +19,104 @@ class IntentExtractionTests(TestCase):
         self.assertEqual(intent['ranking'], 'nearby')
 
 
+FAKE_CLAUDE_INTENT = {
+    'category': Place.Category.DENTIST.value,
+    'zone': 'belgrano',
+    'urgency': 'normal',
+    'raw_service': 'limpieza dental',
+    'ranking': 'recommended',
+    'budget': 'any',
+    'engine': 'claude',
+}
+
+
+@override_settings(ANTHROPIC_API_KEY='test-key')
+class IntentCacheTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_claude_intent_is_cached_per_normalized_query(self):
+        with mock.patch(
+            'search.intent._extract_with_claude',
+            return_value=dict(FAKE_CLAUDE_INTENT),
+        ) as extract:
+            first = extract_intent('Limpieza dental en Belgrano')
+            second = extract_intent('limpieza dental en belgrano')
+
+        self.assertEqual(extract.call_count, 1)
+        self.assertEqual(first, second)
+        self.assertEqual(second['engine'], 'claude')
+
+    def test_use_llm_false_skips_claude_but_reads_cache(self):
+        with mock.patch(
+            'search.intent._extract_with_claude',
+            return_value=dict(FAKE_CLAUDE_INTENT),
+        ) as extract:
+            extract_intent('dentista en belgrano')
+            cached = extract_intent('dentista en belgrano', use_llm=False)
+            uncached = extract_intent('peluqueria en palermo', use_llm=False)
+
+        self.assertEqual(extract.call_count, 1)
+        self.assertEqual(cached['engine'], 'claude')
+        self.assertEqual(uncached['engine'], 'fallback')
+
+
+@override_settings(ANTHROPIC_API_KEY='')
+class SearchQueryLoggingTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_search_with_query_is_logged(self):
+        response = self.client.get('/', {'q': 'dentista barato en belgrano'})
+
+        self.assertEqual(response.status_code, 200)
+        log = SearchQuery.objects.get()
+        self.assertEqual(log.query, 'dentista barato en belgrano')
+        self.assertEqual(log.engine, 'fallback')
+        self.assertEqual(log.category, Place.Category.DENTIST.value)
+        self.assertEqual(log.zone, 'belgrano')
+        self.assertEqual(log.budget, 'cheap')
+        self.assertEqual(log.results_count, 0)
+        self.assertFalse(log.has_coords)
+
+    def test_filter_only_search_is_logged(self):
+        self.client.get('/', {'category': Place.Category.DENTIST.value})
+
+        log = SearchQuery.objects.get()
+        self.assertEqual(log.query, '')
+        self.assertEqual(log.engine, '')
+
+    def test_empty_home_is_not_logged(self):
+        self.client.get('/')
+
+        self.assertEqual(SearchQuery.objects.count(), 0)
+
+
+@override_settings(ANTHROPIC_API_KEY='test-key')
+class SearchLlmThrottleTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def test_llm_use_is_throttled_per_ip(self):
+        with mock.patch(
+            'search.intent._extract_with_claude',
+            return_value=dict(FAKE_CLAUDE_INTENT),
+        ) as extract, mock.patch('search.views.LLM_THROTTLE_LIMIT', 2):
+            # Queries distintas para que el cache de intents no absorba las llamadas.
+            self.client.get('/', {'q': 'dentista en belgrano'})
+            self.client.get('/', {'q': 'peluqueria en palermo'})
+            self.client.get('/', {'q': 'veterinaria en caballito'})
+
+        self.assertEqual(extract.call_count, 2)
+        third = SearchQuery.objects.order_by('created_at').last()
+        self.assertEqual(third.engine, 'fallback')
+
+
 @override_settings(ANTHROPIC_API_KEY='')
 class SearchRankingTests(TestCase):
     def setUp(self):
         self.client = Client()
+        cache.clear()
 
     def test_matching_service_ranks_above_generic_place(self):
         generic = Place.objects.create(

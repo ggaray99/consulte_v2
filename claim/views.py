@@ -5,6 +5,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
+from consulte import throttle
 from places.models import Place
 
 from .emails import send_claim_invitation
@@ -14,6 +15,10 @@ from .tokens import make_claim_token, read_claim_token
 
 
 AUTH_BACKEND = 'django.contrib.auth.backends.ModelBackend'
+
+# Tope de mails de claim por IP: evita usar el flujo para spamear via Resend.
+CLAIM_THROTTLE_LIMIT = 5
+CLAIM_THROTTLE_WINDOW = 60 * 60  # 1 hora
 
 
 def claim_offer(request):
@@ -37,6 +42,11 @@ def start_claim(request, place_id):
 
     if request.method == 'POST':
         form = ClaimRequestForm(request.POST)
+        if form.is_valid() and not throttle.allow(
+            request, 'claim-email',
+            limit=CLAIM_THROTTLE_LIMIT, window_seconds=CLAIM_THROTTLE_WINDOW,
+        ):
+            form.add_error(None, 'Demasiados intentos. Esperá un rato y volvé a probar.')
         if form.is_valid():
             email = form.cleaned_data['email'].strip().lower()
             token = make_claim_token(place.id, email)

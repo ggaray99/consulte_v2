@@ -1,3 +1,4 @@
+import logging
 import math
 import re
 
@@ -5,12 +6,21 @@ from django.db.models import Prefetch
 from django.shortcuts import render
 
 from claim.models import ServiceOffering
+from consulte import throttle
 from places.models import Place
 
 from .intent import _normalize, extract_intent
+from .models import SearchQuery
+
+logger = logging.getLogger(__name__)
 
 CATEGORY_LABELS = dict(Place.Category.choices)
 EARTH_RADIUS_KM = 6371.0
+
+# Tope de llamadas a Claude por IP: pasado el límite la búsqueda sigue
+# funcionando con el extractor fallback (y con intents ya cacheados).
+LLM_THROTTLE_LIMIT = 20
+LLM_THROTTLE_WINDOW = 60  # segundos
 
 SORT_CHOICES = [
     ('recommended', 'Recomendados'),
@@ -54,10 +64,17 @@ def search(request):
     sorted_by_distance = False
 
     if has_input:
-        intent = extract_intent(query) if query else None
+        if query:
+            use_llm = throttle.allow(
+                request, 'search-llm',
+                limit=LLM_THROTTLE_LIMIT, window_seconds=LLM_THROTTLE_WINDOW,
+            )
+            intent = extract_intent(query, use_llm=use_llm)
         sort = _resolve_sort(sort, intent, user_lat, user_lng)
         results = _query_places(intent, user_lat, user_lng, sort=sort, filters=filters, query=query)
         sorted_by_distance = sort == 'nearby' and user_lat is not None and user_lng is not None
+        _log_search(request, query=query, intent=intent, sort=sort, results=results,
+                    has_coords=user_lat is not None and user_lng is not None)
 
     context = {
         'query': query,
@@ -79,6 +96,26 @@ def search(request):
     if request.headers.get('HX-Request'):
         return render(request, 'search/_results.html', context)
     return render(request, 'search/index.html', context)
+
+
+def _log_search(request, *, query, intent, sort, results, has_coords):
+    """Registrar la búsqueda para métricas. Nunca debe romper la respuesta."""
+    try:
+        SearchQuery.objects.create(
+            query=query[:300],
+            engine=(intent or {}).get('engine', ''),
+            category=(intent or {}).get('category') or '',
+            zone=(intent or {}).get('zone') or '',
+            urgency=(intent or {}).get('urgency') or '',
+            ranking=(intent or {}).get('ranking') or '',
+            budget=(intent or {}).get('budget') or '',
+            sort=sort,
+            results_count=len(results),
+            has_coords=has_coords,
+            is_htmx=bool(request.headers.get('HX-Request')),
+        )
+    except Exception:
+        logger.exception('No se pudo registrar la búsqueda')
 
 
 def _parse_coords(request):
