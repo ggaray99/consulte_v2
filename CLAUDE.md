@@ -39,25 +39,26 @@ No hay lint/format tooling configurado. No hay frontend build — la idea inicia
 
 ## Arquitectura objetivo (lo que viene)
 
-El scaffold actual es **mínimo a propósito**: solo Django + config + brand assets. No hay apps de negocio todavía. La arquitectura objetivo cuando empiece a tomar forma:
+**Actualizado 2026-08-19**: `places/`, `search/` y `claim/` ya están implementadas y en producción (ver Roadmap MVP más abajo para el estado real vs. lo planeado). Esta sección queda como referencia de la arquitectura originalmente objetivo.
 
 ### Apps planeadas
 
 - **`places/`** — modelo `Place` (mapea 1:1 a Google `place_id`). Management command `places_ingest` que llama Nearby Search + Place Details y guarda. Caché de 30 días según TdS de Google.
 - **`search/`** — endpoint conversacional. Recibe texto, llama a Claude API con prompt de extracción (servicio + zona + urgencia), arma query a Postgres con filtro geográfico (radio) y ranking por rating, devuelve cards.
 - **`claim/`** — flujo donde el dueño reclama su `Place`. Verificación (email + eventualmente SMS). Una vez reclamado, puede cargar servicios, fotos propias, horarios.
-- **`accounts/`** — usuarios (owners de negocios reclamados).
+- **`accounts/`** — usuarios (owners de negocios reclamados). **No implementada** — el claim usa `django.contrib.auth.User` directo, sin modelo de usuario custom.
 
 ### Stack
 
 - **Django 5** — config en `consulte/`, apps en raíz.
-- **PostgreSQL** — para geo queries usamos `earthdistance` (extensión nativa) o PostGIS si hace falta más potencia. SQLite solo para bootstrap inicial.
-- **HTMX** — interactividad del buscador conversacional sin SPA.
-- **Tailwind** — vía CDN al principio. Cuando duela (perf/SEO), se reemplaza por build local.
+- **PostgreSQL** — para geo queries usamos `earthdistance` (extensión nativa) o PostGIS si hace falta más potencia. SQLite solo para bootstrap inicial (todavía es lo que corre en local; Postgres vía `DATABASE_URL` solo en Railway).
+- **HTMX** — interactividad del buscador conversacional sin SPA. Implementado en `search/index.html`; `claim/` usa forms tradicionales.
+- **Tailwind** — ~~vía CDN al principio~~. **No se adoptó**: los templates usan CSS propio con los tokens de marca (`brand/`), inline por template.
 - **Claude API** (`anthropic` SDK) — NLP para extracción de intención. Modelo `claude-haiku-4-5-20251001` para velocidad/costo en queries de usuario.
 - **Google Places API** (`googlemaps` SDK) — ingesta inicial. ~$25–30 USD para indexar una ciudad mediana; Google da $200/mes free tier.
 - **Resend** — email transaccional (claim invitations).
 - **WhatsApp** — diferido al MVP completo (semanas 5-6 del roadmap). Probablemente Twilio o YCloud.
+- **Cache** — `DatabaseCache` (tabla `consulte_cache`, creada por `manage.py createcachetable` en el release step). Necesario porque el throttle por IP (`consulte/throttle.py`) y la caché de intención (`search/intent.py`) deben compartir estado entre workers de gunicorn; `LocMemCache` (el default de Django) es por-proceso y no sirve ahí.
 
 ### Esquema de datos inicial (referencia, no implementado aún)
 
@@ -89,11 +90,25 @@ Booking              (post-MVP — semanas 5-6)
 
 Alcance acordado para v2 inicial. Booking + WhatsApp quedan **fuera** de este MVP.
 
-- **Semana 1** — App `places/` + management command de ingesta + ~1.500 negocios reales de una ciudad piloto cargados.
-- **Semana 2** — App `search/` + frontend del buscador conversacional con HTMX + integración Claude API + cards de resultado.
-- **Semana 3** — App `claim/` + flujo de email para reclamo + panel mínimo del owner para cargar servicios.
+- **Semana 1** — ✅ App `places/` + management command de ingesta + negocios reales cargados.
+- **Semana 2** — ✅ App `search/` + frontend del buscador conversacional con HTMX + integración Claude API + cards de resultado.
+- **Semana 3** — ✅ App `claim/` + flujo de email para reclamo + panel mínimo del owner para cargar servicios.
 
 Al final de semana 3: producto deployable en Railway con números reales (visitas, búsquedas, claims) que se pueden mostrar a inversores o usar para outreach.
+
+### Estado real (2026-08-19) — más allá del roadmap escrito
+
+El proyecto avanzó en iteración ad hoc más allá de lo que este documento describía. Además de lo de arriba, ya están en producción:
+
+- **Analytics de búsqueda** — cada búsqueda se loguea en `SearchQuery` (`search/models.py`).
+- **Caché de intención** — resultado de Claude cacheado 24h por query normalizada (`search/intent.py`).
+- **Rate limiting por IP** — 20/min para el llamado a Claude, 5/hora para el envío de email de claim (`consulte/throttle.py`).
+- **Landing B2B** (`/para-negocios/`) — pitch freemium para dueños de negocio, con visión futura de operador con IA sobre WhatsApp (no implementada).
+- **Ranking multi-señal** — combina match de texto/servicio, distancia, rating, presupuesto, categoría y bonus por negocio reclamado (`search/views.py`).
+
+Ver `docs/session-2026-05-28-summary.md` para el detalle de la sesión donde se agregaron la landing B2B y el ranking semántico, y `docs/website-service-enrichment.md` para una idea futura (no implementada) de enriquecimiento de servicios por scraping + LLM, pensada como pipeline batch offline.
+
+Pendiente frente al plan original: app `accounts/` y adopción de Tailwind (ver arriba).
 
 ## Convenciones
 

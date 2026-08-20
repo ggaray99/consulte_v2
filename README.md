@@ -15,10 +15,16 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-Abrir http://localhost:8000 — se ve un placeholder. El admin de Django está en `/admin/` (crear superuser con `python manage.py createsuperuser`).
+Abrir http://localhost:8000 — buscador conversacional de turnos. El admin de Django está en `/admin/` (crear superuser con `python manage.py createsuperuser`).
 
 ## Estado actual
 
-Scaffold mínimo. Sin apps de negocio todavía. Próximo paso: crear la primera app (`places`) con el modelo `Place` y el management command de ingesta desde Google Places.
+MVP de las semanas 1-3 completo y con features adicionales encima:
+
+- `places/` — modelo `Place`, ingesta desde Google Places (`python manage.py places_ingest`), detalle con fotos y mapa.
+- `search/` — buscador conversacional (HTMX) con extracción de intención vía Claude, caché de intención, rate limiting por IP, ranking multi-señal y logging de búsquedas (`SearchQuery`) para analytics.
+- `claim/` — flujo de reclamo por link firmado + email, panel del owner para cargar `ServiceOffering`, y landing B2B en `/para-negocios/`.
+
+Pendiente del plan original: app `accounts/` (hoy el claim usa `django.contrib.auth.User` directo) y adopción de Tailwind (por ahora CSS propio con los tokens de marca).
 
 Ver `CLAUDE.md` para el contexto completo y el roadmap.
