@@ -103,6 +103,21 @@ DATABASES = {
 }
 
 
+# --- Cache ---
+# DatabaseCache instead of the LocMemCache default: LocMemCache is per-process,
+# so with more than one gunicorn worker the IP throttle (consulte/throttle.py)
+# and the intent-extraction cache (search/intent.py) would silently stop being
+# shared across workers. The table is created by `manage.py createcachetable`
+# (wired into the Procfile release step).
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+        'LOCATION': 'consulte_cache',
+    }
+}
+
+
 # --- Auth ---
 
 AUTH_PASSWORD_VALIDATORS = [
